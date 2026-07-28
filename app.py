@@ -69,5 +69,15 @@ class ThreadsCLI(App):
         yield Footer()
 
 
+    def on_list_view_highlighted(self, event: ListView.Highlighted) -> None:
+        """Update the preview when the highlighted post changes."""
+
+        if event.item is None:
+            return
+
+        index = self.feed.index
+
+        self.preview.update(POSTS[index]["body"])
+
 if __name__ == "__main__":
     ThreadsCLI().run()
