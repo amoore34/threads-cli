@@ -2,7 +2,7 @@ import json
 
 
 
-def load_posts(filename="data/posts.json"):
+def load_json(filename="data/posts.json"):
     
     try:        
         with open(filename, "r") as file:
