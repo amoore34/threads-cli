@@ -5,6 +5,8 @@ from textual.widgets import Header, Footer, ListView, ListItem, Label, Static
 from services.loader import load_json
 
 POSTS = load_json()
+VISIBLE_POSTS = POSTS.copy()
+SEARCH_TEXT = ""
 
 #POSTS = [
 #    {
@@ -26,6 +28,21 @@ POSTS = load_json()
 #
 #    }
 
+def filter_posts(search_text):
+    search_text = search_text.lower()
+
+    if search_text == "":
+        return POSTS
+    
+    return [
+        post
+        for post in POSTS
+        if (
+            search_text in post["title"] 
+            or search_text in post["body"]
+            )
+        ]
+     
 
 class ThreadsCLI(App):
 
@@ -58,7 +75,8 @@ class ThreadsCLI(App):
             self.feed = ListView(
                 *[
                     ListItem(Label(post["title"]))
-                    for post in POSTS
+                    #for post in POSTS
+                    for post in VISIBLE_POSTS
                 ]
             )
 
