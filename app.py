@@ -1,32 +1,10 @@
 from textual.app import App, ComposeResult
 from textual.containers import Horizontal
-from textual.widgets import Header, Footer, ListView, ListItem, Label, Static
+from textual.widgets import Header, Footer, ListView, ListItem, Label, Static, Input
 
 from services.loader import load_json
 
 POSTS = load_json()
-VISIBLE_POSTS = POSTS.copy()
-SEARCH_TEXT = ""
-
-#POSTS = [
-#    {
-#        "title": "@openai",
-#        "body": "GPT-5.5 is now available with improvements to coding and reasoning."
-#    },
-#    {
-#        "title": "@linux",
-#        "body": "Debian has released another round of package updates."
-#    },
-#    {
-#        "title": "@NASA",
-#        "body": "Webb Telescope captures another incredible image."
-#    },
-#    {
-#        "title": "@friend",
-#        "body": "Finished building my Raspberry Pi project!"
-#    },
-#
-#    }
 
 def filter_posts(search_text):
     search_text = search_text.lower()
@@ -38,14 +16,14 @@ def filter_posts(search_text):
         post
         for post in POSTS
         if (
-            search_text in post["title"] 
-            or search_text in post["body"]
+            search_text in post["title"].lower()
+            or search_text in post["body"].lower()
             )
         ]
      
 
 class ThreadsCLI(App):
-
+    
     CSS = """
     Screen {
         layout: vertical;
@@ -65,10 +43,20 @@ class ThreadsCLI(App):
         padding: 1;
     }
     """
+    def __init__(self):
+            super().__init__()
+            
+            self.visible_posts = POSTS.copy()
+            self.search_text = ""
 
     def compose(self) -> ComposeResult:
 
         yield Header()
+        
+        yield Input(
+            placeholder="Search posts...",
+            id="search"
+                )
 
         with Horizontal():
 
@@ -76,7 +64,7 @@ class ThreadsCLI(App):
                 *[
                     ListItem(Label(post["title"]))
                     #for post in POSTS
-                    for post in VISIBLE_POSTS
+                    for post in self.visible_posts
                 ]
             )
 
@@ -90,6 +78,13 @@ class ThreadsCLI(App):
 
         yield Footer()
 
+    def refresh_feed(self) -> None:
+        self.feed.clear()
+
+        for post in self.visible_posts:
+            self.feed.append(
+                    ListItem(Label(post["title"]))
+                    )
 
     def on_list_view_highlighted(self, event: ListView.Highlighted) -> None:
         """Update the preview when the highlighted post changes."""
@@ -99,7 +94,16 @@ class ThreadsCLI(App):
 
         index = self.feed.index
 
-        self.preview.update(POSTS[index]["body"])
+        self.preview.update(POSTS[index]["body"]
+                            )
+
+    def on_input_changed(self, event: Input.Changed) -> None:
+        
+        self.search_text = event.value
+        self.visible_posts = filter_posts(event.value)
+    
+        self.refresh_feed()
+
 
 if __name__ == "__main__":
     ThreadsCLI().run()
