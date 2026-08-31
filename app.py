@@ -6,15 +6,15 @@ from services.loader import load_json
 
 POSTS = load_json()
 
-def filter_posts(search_text):
+def filter_posts(posts, search_text):
     search_text = search_text.lower()
 
     if search_text == "":
-        return POSTS
+        return posts
     
     return [
         post
-        for post in POSTS
+        for post in posts
         if (
             search_text in post["title"].lower()
             or search_text in post["body"].lower()
@@ -46,7 +46,8 @@ class ThreadsCLI(App):
     def __init__(self):
             super().__init__()
             
-            self.visible_posts = POSTS.copy()
+            self.posts = load_json()
+            self.visible_posts = self.posts.copy()
             self.search_text = ""
 
     def compose(self) -> ComposeResult:
@@ -100,10 +101,10 @@ class ThreadsCLI(App):
     def on_input_changed(self, event: Input.Changed) -> None:
         
         self.search_text = event.value
-        self.visible_posts = filter_posts(event.value)
+        self.visible_posts = filter_posts(self.posts, event.value)
+        self.visible_posts = self.posts.copy()
     
         self.refresh_feed()
-
 
 if __name__ == "__main__":
     ThreadsCLI().run()
